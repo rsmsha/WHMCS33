@@ -38,6 +38,23 @@ if ($ca->isLoggedIn()) {
     //Todas las orders de wh
     $InvoicesWHMCS = $CoreModule->getWhmcsInvoicesAll($ca->getUserID());
 
+    //// START Código HM
+    // Para prevenir que facturen si no se cobro IVA
+    // Generar array asociativo de invoicesid y taxrates
+    $hmInvocesTax = array_map(function($hmInvoice){
+        // Preparar la API call local
+        $hmPostData = array(
+            // Buscar invoice
+            'invoiceid' => $hmInvoice['orderId'],
+        );
+        // Ejecutar y regresar tasa de IVA como valor asociativo del orderid en el array
+        $hmResults = localAPI('GetInvoice', $hmPostData);
+        return $hmResults['taxrate'];
+    }, $InvoicesWHMCS);
+    // Exportar el array a smarty
+    $smarty->assign('hminvoicetaxsmarty', $hmInvocesTax);
+    //// END Código HM
+
     //object to array
     foreach ($Invoices['data'] as $key => $value) {
         if(array_key_exists($value['NumOrder'], $InvoicesWHMCS)){
